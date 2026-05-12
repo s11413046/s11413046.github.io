@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>La Maison — 精緻料理·尊榮訂位</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Serif+TC:wght@300;400;600&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <style>
+    :root {
+      --cream: #F9F5EF;
+      --warm-white: #FDFAF6;
+      --gold: #B8965A;
+      --gold-light: #D4AF7A;
+      --gold-dark: #8A6D3C;
+      --charcoal: #1C1C1C;
+      --dark-brown: #2D2117;
+      --mid-brown: #5C4A30;
+      --text-muted: #8B7355;
+      --border: rgba(184,150,90,0.25);
+      --shadow: 0 8px 40px rgba(28,28,28,0.12);
+      --nav-h: 80px;
+      --transition: 0.45s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Serif TC', serif;
+      background: var(--cream);
+      color: var(--charcoal);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--cream); }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5%;
+      transition: background var(--transition), backdrop-filter var(--transition), box-shadow var(--transition);
+    }
+    nav.scrolled {
+      background: rgba(253,250,246,0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: 0 2px 30px rgba(44,33,23,0.10);
+    }
+    nav.at-top {
+      background: transparent;
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.7rem;
+      font-weight: 600;
+      color: var(--warm-white);
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+      transition: color var(--transition), text-shadow var(--transition);
+    }
+    nav.scrolled .nav-logo {
+      color: var(--dark-brown);
+      text-shadow: none;
+    }
+    .nav-logo span {
+      color: var(--gold-light);
+      font-style: italic;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+      align-items: center;
+    }
+    .nav-links li button {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.88);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 0;
+      position: relative;
+      transition: color var(--transition);
+    }
+    nav.scrolled .nav-links li button {
+      color: var(--mid-brown);
+    }
+    .nav-links li button::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0; height: 1px;
+      background: var(--gold);
+      transition: width 0.3s ease;
+    }
+    .nav-links li button:hover::after,
+    .nav-links li button.active::after { width: 100%; }
+    .nav-links li button.active { color: var(--gold) !important; }
+
+    .nav-reserve-btn {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold) !important;
+      border: 1px solid var(--gold) !important;
+      padding: 8px 18px !important;
+      border-radius: 0;
+      transition: background var(--transition), color var(--transition) !important;
+    }
+    .nav-reserve-btn:hover {
+      background: var(--gold);
+      color: var(--warm-white) !important;
+    }
+    .nav-reserve-btn::after { display: none !important; }
+
+    /* ── HAMBURGER ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px; height: 1.5px;
+      background: var(--warm-white);
+      transition: all 0.3s;
+    }
+    nav.scrolled .hamburger span { background: var(--dark-brown); }
+    .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(4.5px, 4.5px); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(4.5px, -4.5px); }
+
+    .mobile-menu {
+      position: fixed;
+      top: var(--nav-h); left: 0; right: 0;
+      background: rgba(253,250,246,0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 1.5rem 5% 2rem;
+      z-index: 998;
+      transform: translateY(-110%);
+      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+      border-bottom: 1px solid var(--border);
+    }
+    .mobile-menu.open { transform: translateY(0); }
+    .mobile-menu ul { list-style: none; display: flex; flex-direction: column; gap: 1.2rem; }
+    .mobile-menu ul li button {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--mid-brown);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 0;
+    }
+    .mobile-menu ul li button.active { color: var(--gold); }
+
+    /* ── PAGE WRAPPER ── */
+    .page-wrapper {
+      padding-top: var(--nav-h);
+    }
+
+    /* ── PAGE FADE ── */
+    .page-enter-active, .page-leave-active {
+      transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.4,0,0.2,1);
+    }
+    .page-enter-from { opacity: 0; transform: translateY(18px); }
+    .page-leave-to { opacity: 0; transform: translateY(-12px); }
+
+    /* ── DIVIDER ── */
+    .gold-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.2rem auto;
+      width: fit-content;
+    }
+    .gold-divider::before, .gold-divider::after {
+      content: '';
+      display: block;
+      width: 60px; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold));
+    }
+    .gold-divider::after {
+      background: linear-gradient(to left, transparent, var(--gold));
+    }
+    .gold-divider-diamond {
+      width: 6px; height: 6px;
+      background: var(--gold);
+      transform: rotate(45deg);
+    }
+
+    /* ══════════════════════════════
+       HOME PAGE
+    ══════════════════════════════ */
+    .hero {
+      position: relative;
+      height: calc(100vh - var(--nav-h));
+      min-height: 560px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1800&q=85&fit=crop');
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.04);
+      animation: heroZoom 18s ease-in-out infinite alternate;
+    }
+    @keyframes heroZoom {
+      from { transform: scale(1.04); }
+      to   { transform: scale(1.12); }
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        160deg,
+        rgba(20,14,8,0.68) 0%,
+        rgba(44,33,23,0.52) 50%,
+        rgba(20,14,8,0.72) 100%
+      );
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      color: var(--warm-white);
+      padding: 0 5%;
+      animation: fadeUp 1.2s 0.2s both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(32px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-eyebrow {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 1.2rem;
+      animation: fadeUp 1.2s 0.4s both;
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 0.4rem;
+      text-shadow: 0 4px 30px rgba(0,0,0,0.3);
+    }
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+    .hero-subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      font-weight: 300;
+      font-style: italic;
+      color: rgba(253,250,246,0.75);
+      margin-bottom: 2.5rem;
+      animation: fadeUp 1.2s 0.6s both;
+    }
+    .hero-cta-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeUp 1.2s 0.8s both;
+    }
+    .btn-primary {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      background: var(--gold);
+      color: var(--dark-brown);
+      border: none;
+      padding: 14px 36px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    }
+    .btn-primary:hover {
+      background: var(--gold-dark);
+      color: var(--warm-white);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(184,150,90,0.4);
+    }
+    .btn-outline {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--warm-white);
+      border: 1px solid rgba(253,250,246,0.5);
+      padding: 14px 36px;
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s, transform 0.2s;
+    }
+    .btn-outline:hover {
+      background: rgba(253,250,246,0.1);
+      border-color: var(--warm-white);
+      transform: translateY(-2px);
+    }
+    .hero-scroll {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: rgba(253,250,246,0.5);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      animation: fadeUp 1.2s 1.2s both;
+    }
+    .scroll-line {
+      width: 1px; height: 40px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.4; transform: scaleY(1); }
+      50% { opacity: 1; transform: scaleY(1.15); }
+    }
+
+    /* Home sections */
+    .section-padded { padding: 100px 5%; }
+    .section-center { text-align: center; }
+    .section-eyebrow {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 300;
+      color: var(--dark-brown);
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+    .section-title em { font-style: italic; color: var(--gold); }
+    .section-body {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.95rem;
+      font-weight: 300;
+      line-height: 1.9;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .home-features {
+      background: var(--dark-brown);
+      padding: 80px 5%;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 2px;
+      max-width: 1100px;
+      margin: 3rem auto 0;
+    }
+    .feature-item {
+      background: rgba(255,255,255,0.03);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      border: 1px solid rgba(184,150,90,0.15);
+      transition: background 0.3s, border-color 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(184,150,90,0.05) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-item:hover { border-color: rgba(184,150,90,0.4); }
+    .feature-item:hover::before { opacity: 1; }
+    .feature-icon {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+    .feature-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: var(--cream);
+      margin-bottom: 0.6rem;
+    }
+    .feature-desc {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.82rem;
+      font-weight: 300;
+      color: rgba(249,245,239,0.5);
+      line-height: 1.7;
+    }
+
+    .home-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: 240px 240px;
+      gap: 4px;
+    }
+    .gallery-item {
+      overflow: hidden;
+      position: relative;
+    }
+    .gallery-item:first-child {
+      grid-row: span 2;
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.7s cubic-bezier(0.4,0,0.2,1);
+    }
+    .gallery-item:hover img { transform: scale(1.06); }
+    .gallery-item .gallery-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(28,20,10,0);
+      transition: background 0.4s;
+    }
+    .gallery-item:hover .gallery-overlay { background: rgba(28,20,10,0.22); }
+
+    /* ══════════════════════════════
+       MENU PAGE
+    ══════════════════════════════ */
+    .menu-hero {
+      height: 380px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .menu-hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=80&fit=crop');
+      background-size: cover;
+      background-position: center 40%;
+    }
+    .menu-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(20,14,8,0.65) 0%, rgba(44,33,23,0.78) 100%);
+    }
+    .menu-hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      color: var(--warm-white);
+    }
+    .page-hero-eyebrow {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 1rem;
+    }
+    .page-hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 300;
+      line-height: 1.1;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .page-hero-title em { font-style: italic; color: var(--gold-light); }
+
+    .menu-section { padding: 80px 5%; max-width: 1200px; margin: 0 auto; }
+    .menu-tabs {
+      display: flex;
+      gap: 0;
+      justify-content: center;
+      margin-bottom: 4rem;
+      border: 1px solid var(--border);
+    }
+    .menu-tab {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      position: relative;
+    }
+    .menu-tab.active {
+      background: var(--dark-brown);
+      color: var(--gold-light);
+    }
+    .menu-tab:not(.active):hover { background: rgba(184,150,90,0.06); color: var(--gold); }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2.5rem;
+    }
+    .menu-card {
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: box-shadow 0.4s, transform 0.4s;
+      background: var(--warm-white);
+    }
+    .menu-card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-4px);
+    }
+    .menu-card-img {
+      height: 220px;
+      overflow: hidden;
+      position: relative;
+    }
+    .menu-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+    .menu-card:hover .menu-card-img img { transform: scale(1.06); }
+    .menu-card-badge {
+      position: absolute;
+      top: 14px; left: 14px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: var(--gold);
+      color: var(--dark-brown);
+      padding: 5px 12px;
+    }
+    .menu-card-body { padding: 1.6rem 1.8rem; }
+    .menu-card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: var(--dark-brown);
+      margin-bottom: 0.4rem;
+    }
+    .menu-card-sub {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.9rem;
+    }
+    .menu-card-desc {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.85rem;
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--text-muted);
+      margin-bottom: 1.4rem;
+    }
+    .menu-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .menu-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--gold-dark);
+    }
+    .menu-price span {
+      font-size: 0.75rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+    .btn-sm {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: none;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 8px 18px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+    }
+    .btn-sm:hover { background: var(--gold); color: var(--dark-brown); }
+
+    /* ══════════════════════════════
+       FACILITIES PAGE
+    ══════════════════════════════ */
+    .facilities-hero {
+      height: 380px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .facilities-hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1560347876-aeef00ee58a1?w=1600&q=80&fit=crop');
+      background-size: cover;
+      background-position: center 55%;
+    }
+    .facilities-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(20,14,8,0.6), rgba(44,33,23,0.75));
+    }
+
+    .facilities-section { padding: 80px 5%; max-width: 1200px; margin: 0 auto; }
+    .facilities-list { display: flex; flex-direction: column; gap: 5rem; }
+
+    .facility-block {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    .facility-block.reverse { direction: rtl; }
+    .facility-block.reverse > * { direction: ltr; }
+
+    .facility-img-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+    .facility-img-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -12px -12px auto auto;
+      width: 80px; height: 80px;
+      border-top: 2px solid var(--gold);
+      border-right: 2px solid var(--gold);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .facility-img-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: -12px; left: -12px;
+      width: 80px; height: 80px;
+      border-bottom: 2px solid var(--gold);
+      border-left: 2px solid var(--gold);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .facility-img-wrap img {
+      width: 100%;
+      height: 340px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s;
+    }
+    .facility-img-wrap:hover img { transform: scale(1.04); }
+
+    .facility-text { padding: 1rem 0; }
+    .facility-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 4rem;
+      font-weight: 300;
+      color: rgba(184,150,90,0.15);
+      line-height: 1;
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+    .facility-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: var(--dark-brown);
+      margin-bottom: 0.4rem;
+    }
+    .facility-tag {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+      display: block;
+    }
+    .facility-desc {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.9rem;
+      font-weight: 300;
+      line-height: 1.9;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+    .facility-hours {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: var(--mid-brown);
+    }
+    .facility-hours strong {
+      display: block;
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.3rem;
+    }
+
+    /* ══════════════════════════════
+       RESERVATION PAGE
+    ══════════════════════════════ */
+    .reservation-hero {
+      height: 380px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .reservation-hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1551218808-94e220e084d2?w=1600&q=80&fit=crop');
+      background-size: cover;
+      background-position: center 60%;
+    }
+    .reservation-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(20,14,8,0.6), rgba(44,33,23,0.78));
+    }
+
+    .reservation-section {
+      padding: 80px 5%;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .reservation-info { padding-top: 1rem; }
+    .res-info-item {
+      display: flex;
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+      align-items: flex-start;
+    }
+    .res-info-icon {
+      font-size: 1.3rem;
+      margin-top: 0.1rem;
+      min-width: 2rem;
+      text-align: center;
+    }
+    .res-info-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.3rem;
+    }
+    .res-info-value {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--mid-brown);
+      line-height: 1.7;
+    }
+
+    /* Form */
+    .reservation-form { background: var(--warm-white); padding: 2.8rem; border: 1px solid var(--border); }
+    .form-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: var(--dark-brown);
+      margin-bottom: 0.3rem;
+    }
+    .form-subtitle {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.82rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    .form-group { margin-bottom: 1.4rem; }
+    .form-label {
+      display: block;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--mid-brown);
+      margin-bottom: 0.5rem;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--charcoal);
+      background: var(--cream);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(184,150,90,0.1);
+    }
+    .form-textarea { resize: vertical; min-height: 100px; }
+    .form-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23B8965A' stroke-width='1.5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+    .form-submit {
+      width: 100%;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      background: var(--dark-brown);
+      color: var(--gold-light);
+      border: none;
+      padding: 16px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+      margin-top: 0.5rem;
+    }
+    .form-submit:hover {
+      background: var(--gold);
+      color: var(--dark-brown);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(184,150,90,0.35);
+    }
+
+    /* Success message */
+    .success-msg {
+      text-align: center;
+      padding: 2.5rem 1rem;
+    }
+    .success-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    .success-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 300;
+      color: var(--dark-brown);
+      margin-bottom: 0.5rem;
+    }
+    .success-desc {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    /* ══════════════════════════════
+       CONTACT PAGE
+    ══════════════════════════════ */
+    .contact-hero {
+      height: 380px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .contact-hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=1600&q=80&fit=crop');
+      background-size: cover;
+      background-position: center 30%;
+    }
+    .contact-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(20,14,8,0.6), rgba(44,33,23,0.8));
+    }
+
+    .contact-section { padding: 80px 5%; max-width: 1100px; margin: 0 auto; }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 5rem;
+      margin-top: 3rem;
+    }
+    .contact-card {
+      background: var(--warm-white);
+      border: 1px solid var(--border);
+      padding: 2.5rem;
+    }
+    .contact-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--dark-brown);
+      margin-bottom: 1.8rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .contact-item {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: flex-start;
+    }
+    .contact-item-icon {
+      font-size: 1.1rem;
+      min-width: 1.8rem;
+      text-align: center;
+      margin-top: 0.1rem;
+    }
+    .contact-item-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.2rem;
+    }
+    .contact-item-value {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.87rem;
+      font-weight: 300;
+      color: var(--mid-brown);
+      line-height: 1.7;
+    }
+    .contact-map {
+      width: 100%;
+      height: 200px;
+      background: #e8e0d4;
+      margin-top: 1.5rem;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .contact-map img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+    .contact-map-label {
+      position: absolute;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dark-brown);
+      background: rgba(249,245,239,0.88);
+      padding: 8px 16px;
+    }
+
+    .contact-form { background: var(--warm-white); padding: 2.8rem; border: 1px solid var(--border); }
+
+    /* ══════════════════════════════
+       FOOTER
+    ══════════════════════════════ */
+    footer {
+      background: var(--dark-brown);
+      padding: 60px 5% 30px;
+      color: rgba(249,245,239,0.5);
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr;
+      gap: 3rem;
+      max-width: 1100px;
+      margin: 0 auto 3rem;
+    }
+    .footer-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 1rem;
+    }
+    .footer-brand span { color: var(--gold-light); font-style: italic; }
+    .footer-tagline {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.82rem;
+      font-weight: 300;
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+    }
+    .footer-social { display: flex; gap: 0.8rem; }
+    .footer-social a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px; height: 36px;
+      border: 1px solid rgba(184,150,90,0.3);
+      color: rgba(249,245,239,0.5);
+      font-size: 0.8rem;
+      text-decoration: none;
+      transition: border-color 0.3s, color 0.3s, background 0.3s;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+    }
+    .footer-social a:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .footer-col-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+    .footer-col ul li button {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.83rem;
+      font-weight: 300;
+      color: rgba(249,245,239,0.5);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.3s;
+    }
+    .footer-col ul li button:hover { color: var(--gold-light); }
+    .footer-col-text {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.83rem;
+      font-weight: 300;
+      line-height: 1.8;
+    }
+    .footer-bottom {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(184,150,90,0.15);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+    .footer-copy {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+    }
+    .footer-legal {
+      display: flex;
+      gap: 1.5rem;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+    }
+    .footer-legal a {
+      color: rgba(249,245,239,0.4);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .footer-legal a:hover { color: var(--gold); }
+
+    /* ══════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════ */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+
+      .reservation-section,
+      .contact-grid,
+      .facility-block { grid-template-columns: 1fr; gap: 2.5rem; }
+      .facility-block.reverse { direction: ltr; }
+
+      .home-gallery {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+      }
+      .home-gallery .gallery-item:first-child { grid-row: span 1; }
+
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      :root { --nav-h: 64px; }
+      .form-row { grid-template-columns: 1fr; }
+      .hero-cta-group { flex-direction: column; align-items: center; }
+      .btn-primary, .btn-outline { width: 100%; max-width: 260px; }
+      .home-gallery { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .menu-tabs { flex-wrap: wrap; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .reservation-form, .contact-form { padding: 1.8rem; }
+    }
+  </style>
+</head>
+
+<body>
+<div id="app">
+
+  <!-- ── NAVBAR ── -->
+  <nav :class="{ scrolled: isScrolled, 'at-top': !isScrolled }">
+    <div class="nav-logo" @click="navigate('home')">La <span>Maison</span></div>
+
+    <ul class="nav-links">
+      <li v-for="item in navItems" :key="item.id">
+        <button
+          :class="{ active: currentPage === item.id, 'nav-reserve-btn': item.id === 'reservation' }"
+          @click="navigate(item.id)"
+        >{{ item.label }}</button>
+      </li>
+    </ul>
+
+    <button class="hamburger" :class="{ open: mobileMenuOpen }" @click="mobileMenuOpen = !mobileMenuOpen" aria-label="選單">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" :class="{ open: mobileMenuOpen }">
+    <ul>
+      <li v-for="item in navItems" :key="item.id">
+        <button :class="{ active: currentPage === item.id }" @click="navigate(item.id)">{{ item.label }}</button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ── PAGES ── -->
+  <div class="page-wrapper">
+    <transition name="page" mode="out-in">
+
+      <!-- HOME -->
+      <div v-if="currentPage === 'home'" key="home">
+        <section class="hero">
+          <div class="hero-bg"></div>
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <p class="hero-eyebrow">Taipei · Since 1998</p>
+            <h1 class="hero-title">La <em>Maison</em></h1>
+            <p class="hero-subtitle">每一餐，都是一段難忘的旅程</p>
+            <div class="hero-cta-group">
+              <button class="btn-primary" @click="navigate('reservation')">立即訂位</button>
+              <button class="btn-outline" @click="navigate('menu')">瀏覽菜單</button>
+            </div>
+          </div>
+          <div class="hero-scroll">
+            <div class="scroll-line"></div>
+            <span>向下探索</span>
+          </div>
+        </section>
+
+        <!-- About -->
+        <section class="section-padded section-center" style="background: var(--warm-white);">
+          <p class="section-eyebrow">關於我們</p>
+          <h2 class="section-title">法式精緻料理<br><em>的典範之作</em></h2>
+          <div class="gold-divider"><div class="gold-divider-diamond"></div></div>
+          <p class="section-body">
+            La Maison 自 1998 年創立以來，以嚴選當季食材、融合東西方烹飪哲學聞名。我們的主廚團隊曾受訓於巴黎頂尖廚藝學院，帶來每道超越期待的作品，讓每位賓客都留下難忘的味覺記憶。
+          </p>
+        </section>
+
+        <!-- Features -->
+        <section class="home-features">
+          <div style="max-width:1100px;margin:0 auto;text-align:center;">
+            <p class="section-eyebrow" style="color:var(--gold-light)">我們的承諾</p>
+            <h2 class="section-title" style="color:var(--cream)">卓越的每一個細節</h2>
+          </div>
+          <div class="features-grid">
+            <div class="feature-item" v-for="f in features" :key="f.title">
+              <div class="feature-icon">{{ f.icon }}</div>
+              <div class="feature-title">{{ f.title }}</div>
+              <p class="feature-desc">{{ f.desc }}</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Gallery -->
+        <div class="home-gallery">
+          <div class="gallery-item">
+            <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80&fit=crop" alt="餐廳環境">
+            <div class="gallery-overlay"></div>
+          </div>
+          <div class="gallery-item">
+            <img src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=800&q=80&fit=crop" alt="精緻料理">
+            <div class="gallery-overlay"></div>
+          </div>
+          <div class="gallery-item">
+            <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80&fit=crop" alt="用餐體驗">
+            <div class="gallery-overlay"></div>
+          </div>
+          <div class="gallery-item">
+            <img src="https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&q=80&fit=crop" alt="甜點">
+            <div class="gallery-overlay"></div>
+          </div>
+          <div class="gallery-item">
+            <img src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&q=80&fit=crop" alt="葡萄酒">
+            <div class="gallery-overlay"></div>
+          </div>
+        </div>
+
+        <!-- CTA Banner -->
+        <section class="section-padded section-center" style="background: var(--gold); padding: 80px 5%;">
+          <p class="section-eyebrow" style="color:var(--dark-brown)">預約您的專屬體驗</p>
+          <h2 class="section-title" style="color:var(--dark-brown); margin-bottom:2rem">為特別的時刻<br>選擇最美好的地點</h2>
+          <button class="btn-primary" style="background:var(--dark-brown);color:var(--gold-light);" @click="navigate('reservation')">立即線上訂位</button>
+        </section>
+
+        <footer-section @navigate="navigate"></footer-section>
+      </div>
+
+      <!-- MENU -->
+      <div v-else-if="currentPage === 'menu'" key="menu">
+        <div class="menu-hero">
+          <div class="menu-hero-bg"></div>
+          <div class="menu-hero-overlay"></div>
+          <div class="menu-hero-content">
+            <p class="page-hero-eyebrow">精心策劃</p>
+            <h1 class="page-hero-title">精選<em>菜單</em></h1>
+          </div>
+        </div>
+
+        <section class="menu-section">
+          <div style="text-align:center; margin-bottom:3rem">
+            <p class="section-eyebrow">當季呈現</p>
+            <h2 class="section-title">主廚精選<em>套餐</em></h2>
+            <div class="gold-divider"><div class="gold-divider-diamond"></div></div>
+          </div>
+
+          <div class="menu-tabs">
+            <button v-for="tab in menuTabs" :key="tab.id" class="menu-tab" :class="{ active: activeMenuTab === tab.id }" @click="activeMenuTab = tab.id">{{ tab.label }}</button>
+          </div>
+
+          <transition name="page" mode="out-in">
+            <div class="menu-grid" :key="activeMenuTab">
+              <div class="menu-card" v-for="dish in filteredDishes" :key="dish.name">
+                <div class="menu-card-img">
+                  <img :src="dish.img" :alt="dish.name">
+                  <span class="menu-card-badge" v-if="dish.badge">{{ dish.badge }}</span>
+                </div>
+                <div class="menu-card-body">
+                  <h3 class="menu-card-name">{{ dish.name }}</h3>
+                  <p class="menu-card-sub">{{ dish.sub }}</p>
+                  <p class="menu-card-desc">{{ dish.desc }}</p>
+                  <div class="menu-card-footer">
+                    <div class="menu-price">NT$ {{ dish.price }} <span>/ 人</span></div>
+                    <button class="btn-sm" @click="navigate('reservation')">訂位享用</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </section>
+
+        <footer-section @navigate="navigate"></footer-section>
+      </div>
+
+      <!-- FACILITIES -->
+      <div v-else-if="currentPage === 'facilities'" key="facilities">
+        <div class="facilities-hero">
+          <div class="facilities-hero-bg"></div>
+          <div class="facilities-hero-overlay"></div>
+          <div class="menu-hero-content" style="position:relative;z-index:2;text-align:center;color:var(--warm-white)">
+            <p class="page-hero-eyebrow">尊榮享受</p>
+            <h1 class="page-hero-title">餐廳<em>設施</em></h1>
+          </div>
+        </div>
+
+        <section class="facilities-section">
+          <div style="text-align:center; margin-bottom:4rem">
+            <p class="section-eyebrow">完美配套</p>
+            <h2 class="section-title">超越用餐的<em>全感體驗</em></h2>
+            <div class="gold-divider"><div class="gold-divider-diamond"></div></div>
+          </div>
+
+          <div class="facilities-list">
+            <div v-for="(facility, i) in facilities" :key="facility.name" class="facility-block" :class="{ reverse: i % 2 === 1 }">
+              <div class="facility-img-wrap">
+                <img :src="facility.img" :alt="facility.name">
+              </div>
+              <div class="facility-text">
+                <span class="facility-number">0{{ i + 1 }}</span>
+                <h3 class="facility-name">{{ facility.name }}</h3>
+                <span class="facility-tag">{{ facility.tag }}</span>
+                <p class="facility-desc">{{ facility.desc }}</p>
+                <div class="facility-hours">
+                  <strong>開放時間</strong>
+                  {{ facility.hours }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer-section @navigate="navigate"></footer-section>
+      </div>
+
+      <!-- RESERVATION -->
+      <div v-else-if="currentPage === 'reservation'" key="reservation">
+        <div class="reservation-hero">
+          <div class="reservation-hero-bg"></div>
+          <div class="reservation-hero-overlay"></div>
+          <div class="menu-hero-content" style="position:relative;z-index:2;text-align:center;color:var(--warm-white)">
+            <p class="page-hero-eyebrow">專屬預約</p>
+            <h1 class="page-hero-title">線上<em>訂位</em></h1>
+          </div>
+        </div>
+
+        <section class="reservation-section">
+          <div class="reservation-info">
+            <p class="section-eyebrow">訂位須知</p>
+            <h2 class="section-title" style="margin-bottom:2rem">讓我們為您<br><em>精心安排</em></h2>
+            <div class="res-info-item" v-for="info in resInfo" :key="info.label">
+              <div class="res-info-icon">{{ info.icon }}</div>
+              <div>
+                <p class="res-info-label">{{ info.label }}</p>
+                <p class="res-info-value">{{ info.value }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="reservation-form">
+            <div v-if="!formSubmitted">
+              <h3 class="form-title">填寫訂位資料</h3>
+              <p class="form-subtitle">我們將於 24 小時內以電話或 Email 確認您的訂位</p>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">姓名 *</label>
+                  <input class="form-input" v-model="resForm.name" type="text" placeholder="您的姓名">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">聯絡電話 *</label>
+                  <input class="form-input" v-model="resForm.phone" type="tel" placeholder="0912-345-678">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">電子郵件</label>
+                <input class="form-input" v-model="resForm.email" type="email" placeholder="your@email.com">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">訂位日期 *</label>
+                  <input class="form-input" v-model="resForm.date" type="date">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">用餐時段 *</label>
+                  <select class="form-select" v-model="resForm.time">
+                    <option value="">請選擇時段</option>
+                    <option>12:00 午餐</option>
+                    <option>13:30 午餐</option>
+                    <option>18:00 晚餐</option>
+                    <option>19:30 晚餐</option>
+                    <option>21:00 晚餐</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">用餐人數 *</label>
+                  <select class="form-select" v-model="resForm.guests">
+                    <option value="">請選擇</option>
+                    <option v-for="n in 10" :key="n">{{ n }} 位</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">套餐選擇</label>
+                  <select class="form-select" v-model="resForm.menu">
+                    <option value="">不指定</option>
+                    <option>主廚精選套餐</option>
+                    <option>法式全套料理</option>
+                    <option>季節限定菜單</option>
+                    <option>素食精選套餐</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">特殊需求 / 備註</label>
+                <textarea class="form-textarea" v-model="resForm.note" placeholder="如有食物過敏、慶祝活動或特別需求，請在此說明..."></textarea>
+              </div>
+              <button class="form-submit" @click="submitReservation">確認送出訂位申請</button>
+            </div>
+
+            <div v-else class="success-msg">
+              <div class="success-icon">✦</div>
+              <h3 class="success-title">訂位申請已送出</h3>
+              <div class="gold-divider" style="margin:1rem auto"><div class="gold-divider-diamond"></div></div>
+              <p class="success-desc">
+                感謝您選擇 La Maison。<br>
+                我們將於 24 小時內以電話或 Email 確認您的訂位。<br>
+                期待在餐桌上與您相遇。
+              </p>
+              <button class="btn-sm" style="margin-top:2rem" @click="formSubmitted = false">重新填寫</button>
+            </div>
+          </div>
+        </section>
+
+        <footer-section @navigate="navigate"></footer-section>
+      </div>
+
+      <!-- CONTACT -->
+      <div v-else-if="currentPage === 'contact'" key="contact">
+        <div class="contact-hero">
+          <div class="contact-hero-bg"></div>
+          <div class="contact-hero-overlay"></div>
+          <div class="menu-hero-content" style="position:relative;z-index:2;text-align:center;color:var(--warm-white)">
+            <p class="page-hero-eyebrow">歡迎蒞臨</p>
+            <h1 class="page-hero-title">聯絡<em>我們</em></h1>
+          </div>
+        </div>
+
+        <section class="contact-section">
+          <div style="text-align:center">
+            <p class="section-eyebrow">隨時為您服務</p>
+            <h2 class="section-title">找到我們，<em>開始一段美好</em></h2>
+            <div class="gold-divider"><div class="gold-divider-diamond"></div></div>
+          </div>
+
+          <div class="contact-grid">
+            <div>
+              <div class="contact-card">
+                <h3 class="contact-card-title">聯絡資訊</h3>
+                <div class="contact-item" v-for="c in contactInfo" :key="c.label">
+                  <div class="contact-item-icon">{{ c.icon }}</div>
+                  <div>
+                    <p class="contact-item-label">{{ c.label }}</p>
+                    <p class="contact-item-value" v-html="c.value"></p>
+                  </div>
+                </div>
+              </div>
+              <div class="contact-map" style="margin-top:1.5rem">
+                <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&q=60&fit=crop" alt="地圖">
+                <span class="contact-map-label">台北市信義區松仁路 100 號</span>
+              </div>
+            </div>
+
+            <div class="contact-form">
+              <div v-if="!contactSubmitted">
+                <h3 class="form-title">傳送訊息</h3>
+                <p class="form-subtitle" style="margin-bottom:1.8rem">我們會盡快回覆您的問題</p>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">姓名 *</label>
+                    <input class="form-input" v-model="contactForm.name" type="text" placeholder="您的姓名">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">電子郵件 *</label>
+                    <input class="form-input" v-model="contactForm.email" type="email" placeholder="your@email.com">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">主旨 *</label>
+                  <input class="form-input" v-model="contactForm.subject" type="text" placeholder="您的問題主旨">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">訊息內容 *</label>
+                  <textarea class="form-textarea" v-model="contactForm.message" style="min-height:140px" placeholder="請描述您的問題或需求..."></textarea>
+                </div>
+                <button class="form-submit" @click="submitContact">送出訊息</button>
+              </div>
+              <div v-else class="success-msg">
+                <div class="success-icon">✦</div>
+                <h3 class="success-title">訊息已送出</h3>
+                <div class="gold-divider" style="margin:1rem auto"><div class="gold-divider-diamond"></div></div>
+                <p class="success-desc">感謝您的來信，<br>我們將於 1-2 個工作天內回覆您。</p>
+                <button class="btn-sm" style="margin-top:2rem" @click="contactSubmitted = false">再次留言</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer-section @navigate="navigate"></footer-section>
+      </div>
+
+    </transition>
+  </div>
+
+</div>
+
+<script>
+const { createApp, defineComponent, ref, computed, onMounted, onUnmounted } = Vue;
+
+const FooterSection = defineComponent({
+  emits: ['navigate'],
+  template: `
+    <footer>
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand">La <span>Maison</span></div>
+          <p class="footer-tagline">致力於以最精純的食材，呈現跨越文化邊界的料理藝術，為每位賓客創造難忘的感官體驗。</p>
+          <div class="footer-social">
+            <a href="#" title="Instagram">IG</a>
+            <a href="#" title="Facebook">FB</a>
+            <a href="#" title="YouTube">YT</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">快速導覽</p>
+          <ul>
+            <li><button @click="$emit('navigate', 'home')">首頁</button></li>
+            <li><button @click="$emit('navigate', 'menu')">精選菜單</button></li>
+            <li><button @click="$emit('navigate', 'facilities')">餐廳設施</button></li>
+            <li><button @click="$emit('navigate', 'reservation')">線上訂位</button></li>
+            <li><button @click="$emit('navigate', 'contact')">聯絡我們</button></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">營業資訊</p>
+          <p class="footer-col-text">週一至週五<br>12:00 – 14:30 / 18:00 – 22:00</p>
+          <br>
+          <p class="footer-col-text">週六、日及國定假日<br>11:30 – 15:00 / 17:30 – 22:30</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">© 2025 La Maison Restaurant. All rights reserved.</span>
+        <div class="footer-legal">
+          <a href="#">隱私政策</a>
+          <a href="#">服務條款</a>
+          <a href="#">Cookie 政策</a>
+        </div>
+      </div>
+    </footer>
+  `
+});
+
+createApp({
+  components: { FooterSection },
+  setup() {
+    const currentPage = ref('home');
+    const isScrolled = ref(false);
+    const mobileMenuOpen = ref(false);
+    const activeMenuTab = ref('set');
+    const formSubmitted = ref(false);
+    const contactSubmitted = ref(false);
+
+    const resForm = ref({ name:'', phone:'', email:'', date:'', time:'', guests:'', menu:'', note:'' });
+    const contactForm = ref({ name:'', email:'', subject:'', message:'' });
+
+    const navItems = [
+      { id: 'home', label: '首頁' },
+      { id: 'menu', label: '精選菜單' },
+      { id: 'facilities', label: '餐廳設施' },
+      { id: 'contact', label: '聯絡我們' },
+      { id: 'reservation', label: '立即訂位' },
+    ];
+
+    const features = [
+      { icon: '🍷', title: '頂級酒窖', desc: '典藏逾 800 款精選葡萄酒，由資深侍酒師為您搭配最佳佐餐選擇。' },
+      { icon: '👨‍🍳', title: '米其林主廚', desc: '領銜主廚 André Chen 曾於巴黎、東京深造，融合東西烹飪精粹。' },
+      { icon: '🌿', title: '有機食材', desc: '與台灣在地有機農場直接合作，每日新鮮直送當季最優質食材。' },
+      { icon: '🎵', title: '現場音樂', desc: '每週五、六夜間，享受爵士四重奏帶來的浪漫用餐氛圍。' },
+    ];
+
+    const menuTabs = [
+      { id: 'set',     label: '套餐' },
+      { id: 'starter', label: '前菜' },
+      { id: 'main',    label: '主菜' },
+      { id: 'pasta',   label: '麵食與燉飯' },
+      { id: 'dessert', label: '甜點' },
+      { id: 'drinks',  label: '飲品' },
+    ];
+
+    const allDishes = [
+      // 套餐
+      { tab: 'set', name: '主廚精選套餐', sub: 'Chef\'s Selection', desc: '六道精心設計菜餚，涵蓋時令前菜、湯品、主菜與甜點，完整展現主廚的料理哲學。', price: '3,800', img: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80&fit=crop', badge: '主廚推薦' },
+      { tab: 'set', name: '法式全套料理', sub: 'Classic French Menu', desc: '正統法式八道套餐，從鵝肝醬、松露湯品至烤鴨胸，帶您品味道地的法式美食文化。', price: '5,200', img: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&q=80&fit=crop', badge: '熱門' },
+      { tab: 'set', name: '季節限定菜單', sub: 'Seasonal Tasting', desc: '每季重新設計，以最當令的食材為靈感，每次造訪都能體驗截然不同的驚喜。', price: '4,500', img: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&q=80&fit=crop', badge: '限定' },
+      { tab: 'set', name: '素食精選套餐', sub: 'Vegetarian Tasting', desc: '五道精心設計的純蔬食料理，以豐富的季節蔬果展現大自然的豐盛與美味。', price: '2,800', img: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80&fit=crop', badge: '素食' },
+      // 前菜
+      { tab: 'starter', name: '法式鵝肝醬', sub: 'Foie Gras Torchon', desc: '頂級鵝肝以白蘭地醃製後低溫熟成，搭配布里歐許吐司與無花果果醬，奢華的第一口。', price: '680', img: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=600&q=80&fit=crop', badge: '經典' },
+      { tab: 'starter', name: '番茄水牛起司', sub: 'Caprese Classico', desc: '義大利進口水牛起司配上當季溫室番茄，淋上特級初榨橄欖油與九層塔，清爽開胃。', price: '420', img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80&fit=crop', badge: null },
+      { tab: 'starter', name: '龍蝦冷湯', sub: 'Lobster Gazpacho', desc: '以西班牙傳統冷湯為基底，加入當日鮮龍蝦肉，盛入冰鎮玻璃杯，優雅中帶著驚喜。', price: '580', img: 'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=600&q=80&fit=crop', badge: '新品' },
+      { tab: 'starter', name: '煙燻鮭魚捲', sub: 'Smoked Salmon Roulade', desc: '挪威頂級煙燻鮭魚捲起奶油起司與時蘿，搭配魚子醬與酸豆，精緻而鮮美。', price: '480', img: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600&q=80&fit=crop', badge: null },
+      // 主菜
+      { tab: 'main', name: '油封鴨腿', sub: 'Duck Confit', desc: '傳統法式工法低溫油封八小時，外皮酥脆金黃，搭配普羅旺斯燉菜與迷迭香醬汁呈現。', price: '980', img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80&fit=crop', badge: null },
+      { tab: 'main', name: '炭烤和牛菲力', sub: 'Wagyu Beef Tenderloin', desc: 'A5 等級宮崎和牛以炭火完美烤至 medium-rare，搭配黑松露醬汁與細根芹泥。', price: '2,800', img: 'https://images.unsplash.com/photo-1558030006-450675393462?w=600&q=80&fit=crop', badge: '頂級' },
+      { tab: 'main', name: '清蒸比目魚', sub: 'Steamed Turbot', desc: '法國進口比目魚以清蒸工法保留最鮮甜的海味，佐以法式奶油白酒醬與季節蔬菜。', price: '1,480', img: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80&fit=crop', badge: null },
+      { tab: 'main', name: '普羅旺斯燉羊膝', sub: 'Lamb Shank Provençal', desc: '紐西蘭羊膝以紅酒與普羅旺斯香草慢燉四小時，肉質軟嫩入味，香氣令人難忘。', price: '1,200', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80&fit=crop', badge: '主廚推薦' },
+      // 麵食與燉飯
+      { tab: 'pasta', name: '松露燉飯', sub: 'Truffle Risotto', desc: '以義大利 Arborio 米慢火熬製，搭配黑松露薄片與帕馬森起司，香氣濃郁層次豐富。', price: '880', img: 'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=600&q=80&fit=crop', badge: null },
+      { tab: 'pasta', name: '龍蝦義大利麵', sub: 'Lobster Linguine', desc: '當日鮮龍蝦拆肉與扁寬麵以番茄奶油醬拌炒，放上完整龍蝦鉗擺盤，氣勢十足。', price: '1,380', img: 'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=80&fit=crop', badge: '熱門' },
+      { tab: 'pasta', name: '海膽奶油細麵', sub: 'Uni Cream Spaghetti', desc: '北海道生食級海膽與頂級鮮奶油輕拌日本細麵，搭配柚子皮提香，濃郁中不失清新。', price: '1,200', img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=600&q=80&fit=crop', badge: '新品' },
+      { tab: 'pasta', name: '野菇奶油寬扁麵', sub: 'Wild Mushroom Pappardelle', desc: '混合牛肝菌、雞油菌與香菇三種野菇，以白酒奶油醬調和，鋪上新鮮帕馬森起司片。', price: '780', img: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=600&q=80&fit=crop', badge: '素食' },
+      // 甜點
+      { tab: 'dessert', name: '法式焦糖布丁', sub: 'Crème Brûlée', desc: '香草莢與頂級鮮奶油完美比例，以噴槍炙燒糖面至金黃，入口即是一份愉悅。', price: '280', img: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600&q=80&fit=crop', badge: '經典' },
+      { tab: 'dessert', name: '熔岩巧克力', sub: 'Chocolate Lava Cake', desc: '使用 72% 頂級黑巧克力，中心流淌的溫熱巧克力漿配以香草冰淇淋，溫度的反差令人沉醉。', price: '320', img: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&q=80&fit=crop', badge: null },
+      { tab: 'dessert', name: '季節水果塔', sub: 'Seasonal Fruit Tart', desc: '法式沙布列塔皮搭配卡士達醬，鋪上當季新鮮水果，清爽而精緻。', price: '260', img: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=600&q=80&fit=crop', badge: null },
+      { tab: 'dessert', name: '馬卡龍拼盤', sub: 'Macaron Assortment', desc: '精選六種口味：玫瑰荔枝、開心果、焦糖海鹽、薰衣草、抹茶及覆盆子，法式甜點的極致。', price: '380', img: 'https://images.unsplash.com/photo-1558326567-98ae2405596b?w=600&q=80&fit=crop', badge: '精選' },
+      // 飲品
+      { tab: 'drinks', name: '侍酒師精選紅酒', sub: 'Sommelier Red Wine', desc: '由資深侍酒師依當日菜單精選波爾多或布根地產區紅酒，每杯皆為最佳餐酒搭配。', price: '480', img: 'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=600&q=80&fit=crop', badge: '推薦' },
+      { tab: 'drinks', name: '頂級香檳', sub: 'Prestige Champagne', desc: '精選法國香檳區 Blanc de Blancs，細緻氣泡與清爽酸度，是每個慶祝時刻的最佳主角。', price: '680', img: 'https://images.unsplash.com/photo-1543539748-6fd5570dbd97?w=600&q=80&fit=crop', badge: '慶祝首選' },
+      { tab: 'drinks', name: '手工無酒精特調', sub: 'Signature Mocktail', desc: '主調酒師以當季花草與新鮮水果精心調製，層次豐富、色彩繽紛，不含酒精亦能享受精緻。', price: '280', img: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80&fit=crop', badge: null },
+      { tab: 'drinks', name: '精品單品咖啡', sub: 'Single Origin Coffee', desc: '與台灣頂尖烘豆師合作，精選衣索比亞、巴拿馬等產區豆款，以手沖或義式萃取呈現風土特色。', price: '220', img: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80&fit=crop', badge: null },
+    ];
+
+    const filteredDishes = computed(() => allDishes.filter(d => d.tab === activeMenuTab.value));
+
+    const facilities = [
+      {
+        name: '私人宴會廳',
+        tag: 'Private Dining Room',
+        desc: '可容納 2–24 位賓客的私密空間，專屬管家服務與客製化菜單，無論是商務宴請或重要家庭聚會，皆能在此留下最美好的記憶。',
+        hours: '需提前 72 小時預約 · 最低消費依包廂而異',
+        img: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80&fit=crop&crop=center',
+      },
+      {
+        name: '開放式廚房',
+        tag: 'Open Kitchen Experience',
+        desc: '透過透明玻璃，全程觀賞主廚團隊如何精準演繹每一道料理。主廚桌位（Chef\'s Table）限量 6 席，是真正的饕客體驗。',
+        hours: '每週三至週日晚間開放 · 主廚桌位須至少兩週前預約',
+        img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80&fit=crop',
+      },
+      {
+        name: '頂樓露台酒廊',
+        tag: 'Rooftop Terrace & Bar',
+        desc: '俯瞰台北 101 的無敵夜景，搭配由侍酒師精選的香檳、雞尾酒與小食。週末夜間設有現場爵士樂演奏，是浪漫約會的絕佳選擇。',
+        hours: '週四至週日 18:00 – 00:00 · 天氣因素可能臨時關閉',
+        img: 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=800&q=80&fit=crop',
+      },
+      {
+        name: '品酒室 · 雪茄吧',
+        tag: 'Wine Cellar & Cigar Lounge',
+        desc: '典藏超過 800 款來自法國波爾多、布根地及新世界的精選佳釀。提供專業品酒課程與雪茄配對服務，滿足最挑剔的收藏家品味。',
+        hours: '週一至週日 14:00 – 23:00 · 品酒課程需預約',
+        img: 'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=800&q=80&fit=crop',
+      },
+    ];
+
+    const resInfo = [
+      { icon: '📍', label: '餐廳地址', value: '台北市信義區松仁路 100 號 B1F' },
+      { icon: '📞', label: '訂位專線', value: '(02) 2765-8899' },
+      { icon: '✉️', label: '電子信箱', value: 'reservation@lamaison.tw' },
+      { icon: '⏰', label: '服務時間', value: '週一至週五 10:00–22:00<br>週六日及假日 09:00–23:00' },
+      { icon: '🚗', label: '停車資訊', value: '信義區地下停車場，憑消費可享 3 小時免費停車' },
+    ];
+
+    const contactInfo = [
+      { icon: '📍', label: '地址', value: '台北市信義區松仁路 100 號 B1F<br>近台北 101 / 世貿站' },
+      { icon: '📞', label: '電話', value: '(02) 2765-8899' },
+      { icon: '✉️', label: '電子郵件', value: 'hello@lamaison.tw' },
+      { icon: '⏰', label: '營業時間', value: '午餐 12:00 – 14:30<br>晚餐 18:00 – 22:00<br>（週一公休）' },
+    ];
+
+    const navigate = (page) => {
+      currentPage.value = page;
+      mobileMenuOpen.value = false;
+      formSubmitted.value = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const submitReservation = () => {
+      if (!resForm.value.name || !resForm.value.phone || !resForm.value.date) {
+        alert('請填寫必填欄位（姓名、電話、日期）');
+        return;
+      }
+      formSubmitted.value = true;
+      resForm.value = { name:'', phone:'', email:'', date:'', time:'', guests:'', menu:'', note:'' };
+    };
+
+    const submitContact = () => {
+      if (!contactForm.value.name || !contactForm.value.email || !contactForm.value.message) {
+        alert('請填寫必填欄位（姓名、Email、訊息）');
+        return;
+      }
+      contactSubmitted.value = true;
+      contactForm.value = { name:'', email:'', subject:'', message:'' };
+    };
+
+    const handleScroll = () => { isScrolled.value = window.scrollY > 40; };
+    onMounted(() => window.addEventListener('scroll', handleScroll));
+    onUnmounted(() => window.removeEventListener('scroll', handleScroll));
+
+    return {
+      currentPage, isScrolled, mobileMenuOpen, activeMenuTab,
+      formSubmitted, contactSubmitted, resForm, contactForm,
+      navItems, features, menuTabs, filteredDishes,
+      facilities, resInfo, contactInfo,
+      navigate, submitReservation, submitContact,
+    };
+  }
+}).mount('#app');
+</script>
+
+</body>
+</html>
